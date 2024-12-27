@@ -18,6 +18,8 @@ db = client["student_db"]
 # Collection for students data
 students_collection = db["students"]
 
+# CRUD Functions
+
 def get_students_collection():
     "Return the students collection."
     return students_collection

@@ -1,16 +1,25 @@
 # Ignore Python cache
 __pycache__/
 *.pyc
+*.pyo
 
 # Ignore virtual environments
 venv/
+env/
 
 # Ignore environment files
 .env
 
 # Ignore system files
 .DS_Store
+Desktop.ini
 Thumbs.db
+
+# Ignore IDE configurations (e.g., VS Code)
+.vscode/
+
+# Ignore PyCharm project files
+.idea/
 
 # Ignore logs or temp files
 *.log

@@ -1,38 +1,19 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from typing import Optional, List
-from db import create_student, get_students_collection, get_student_by_id, update_student, delete_student
+from fastapi import APIRouter, HTTPException
+from typing import Optional
+from app.models.student import Student, StudentDetails, StudentResponse, PartialStudent
+from app.db.mongo import create_student, get_students_collection, get_student_by_id, update_student, delete_student
 
-# FastAPI app initialization
-app = FastAPI()
-
-# Pydantic Models
-class Address(BaseModel):
-    city: str
-    country: str
-
-class Student(BaseModel):
-    name: str
-    age: int
-    address: Address
-
-class StudentResponse(BaseModel):
-    id: str
-
-class StudentDetails(BaseModel):
-    name: str
-    age: int
-    address: Address
+router = APIRouter()
 
 # POST /students - Create a new student
-@app.post("/students", response_model=StudentResponse, status_code=201)
+@router.post("/students", response_model=StudentResponse, status_code=201)
 def create_student_endpoint(student: Student):
     student_data = student.model_dump() 
     created_student = create_student(student_data)
     return {"id": created_student["id"]}  
 
 # GET /students - Fetch all students with optional filters
-@app.get("/students", response_model=dict)
+@router.get("/students", response_model=dict)
 def list_students(country: Optional[str] = None, age: Optional[int] = None):
     query = {}
     if country:
@@ -45,15 +26,19 @@ def list_students(country: Optional[str] = None, age: Optional[int] = None):
     response = []
     for student in students_cursor:
         student_data = {
+            "id": student["id"],
             "name": student["name"],
             "age": student["age"],
-            # "country": student.get("address", {}).get("country", ""),
+            "address": {
+                "country": student.get("address", {}).get("country", ""),
+                "city": student.get("address", {}).get("city", ""),
+            }
         }
         response.append(student_data)
     return {"data": response}  # Return students in the expected format
 
 # GET /students/{id} - Fetch a student by ID
-@app.get("/students/{id}", response_model=StudentDetails, status_code=200)
+@router.get("/students/{id}", response_model=StudentDetails, status_code=200)
 def get_student_endpoint(id: str):
     student = get_student_by_id(id)
     if not student:
@@ -61,15 +46,18 @@ def get_student_endpoint(id: str):
     return student
 
 # PATCH /students/{id} - Update student details
-@app.patch("/students/{id}", status_code=204)
-def update_student_endpoint(id: str, update_data: Student):
-    updated_student = update_student(id, update_data.model_dump(exclude_unset=True))
-    if updated_student["modified_count"] == 0:
+@router.patch("/students/{id}", status_code=204)
+def update_student_endpoint(id: str, update_data: PartialStudent):
+    updated_data = update_data.model_dump(exclude_unset=True)
+    if not updated_data:
+        raise HTTPException(status_code=400, detail="No data provided for update")
+    result = update_student(id, updated_data)
+    if result["modified_count"] == 0:
         raise HTTPException(status_code=404, detail="Student not found")
     return # 204 No Content response 
 
 # DELETE /students/{id} - Delete a student
-@app.delete("/students/{id}", status_code=200)
+@router.delete("/students/{id}", status_code=200)
 def delete_student_endpoint(id: str):
     result = delete_student(id)
     if result["deleted_count"] == 0:
