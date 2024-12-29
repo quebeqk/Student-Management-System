@@ -2,25 +2,48 @@
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+*.db
 
 # Ignore virtual environments
 venv/
-env/
-
-# Ignore environment files
-.env
+.env/
+.env.venv/
 
 # Ignore system files
 .DS_Store
 Desktop.ini
 Thumbs.db
 
-# Ignore IDE configurations (e.g., VS Code)
+# VSCode settings
 .vscode/
 
-# Ignore PyCharm project files
+# PyCharm settings
 .idea/
 
-# Ignore logs or temp files
+# Windows specific files
+Thumbs.db
+ehthumbs.db
+
+# Operating system-specific files
+Desktop.ini # Windows file
+*.bak       # Backup files
+*.swp       # Vim temporary files
+*.swo       # Vim temporary files
+
+# Log files
 *.log
-*.tmp
+
+# Coverage files (from pytest)
+.coverage
+*.cover
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# IDE-specific
+*.swp
+
+# Files that could contain sensitive information
+*.env
+*.secret
